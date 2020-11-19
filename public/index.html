@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body,
+        html,
+        #allmap {
+            /* width: 100%;
+            height: 100%;
+            overflow: hidden; */
+            font-family: "微软雅黑";
+        }
+    </style>
+    <!-- 百度地图3.0 离线API Begin -->
+    <script type="text/javascript" src="../../bmap-offline/map3.0_init.js"></script>
+    <script type="text/javascript" src="../../bmap-offline/map3.0.js"></script>
+    <script type="text/javascript" src="../../bmap-offline/library/TextIconOverlay_min.js"></script>
+    <script type="text/javascript" src="../../bmap-offline/library/MarkerClusterer_min.js"></script>
+    <script type="text/javascript" src="../../bmap-offline/library/DistanceTool_min.js"></script>
+    <!-- 百度地图3.0 End -->
+
+    <script type="text/javascript" src="../jquery.js"></script>
+    <script type="text/javascript" src="../layer.js"></script>
+    <title>地图展示</title>
+    <link rel="stylesheet" href=" ./element-ui/display.css">
+
+    <link rel="stylesheet" href="./element-ui/main.css">
+
+    <script src="./element-ui/vue.js"></script>
+
+    <script src="./element-ui/index.js"></script>
+
+    <script src="./element-ui/vue-resource.min.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+    </div>
+</body>
+
+</html>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("allmap"); // 创建Map实例
+    var point = new BMap.Point(126.54161509031663, 45.808825827952184);
+    map.centerAndZoom(point, 6);
+
+
+
+    //添加地图类型控件
+    var mapType1 = new BMap.MapTypeControl({
+        mapTypes: [BMAP_NORMAL_MAP, BMAP_SATELLITE_MAP, BMAP_HYBRID_MAP],
+        anchor: BMAP_ANCHOR_TOP_RIGHT
+    });
+    // map.addControl(new BMap.MapTypeControl({
+    // 	mapTypes:[
+    //         BMAP_NORMAL_MAP,
+    //         BMAP_SATELLITE_MAP,
+    //         BMAP_HYBRID_MAP
+    //     ]}));	  
+    //离线不支持
+    //map.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
+
+    map.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
+
+    var top_left_control = new BMap.ScaleControl({
+        anchor: BMAP_ANCHOR_TOP_LEFT
+    }); // 左上角，添加比例尺
+    var top_left_navigation = new BMap.NavigationControl(); //左上角，添加默认缩放平移控件
+    // var top_right_navigation = new BMap.NavigationControl({anchor: BMAP_ANCHOR_TOP_RIGHT, type: BMAP_NAVIGATION_CONTROL_SMALL}); //右上角，仅包含平移和缩放按钮
+    /*缩放控件type有四种类型:
+    BMAP_NAVIGATION_CONTROL_SMALL：仅包含平移和缩放按钮；BMAP_NAVIGATION_CONTROL_PAN:仅包含平移按钮；BMAP_NAVIGATION_CONTROL_ZOOM：仅包含缩放按钮*/
+    var overView = new BMap.OverviewMapControl();
+    var overViewOpen = new BMap.OverviewMapControl({
+        isOpen: true,
+        anchor: BMAP_ANCHOR_BOTTOM_RIGHT
+    });
+
+    //添加控件和比例尺
+    function add_control_ruler() {
+        map.addControl(top_left_control);
+        map.addControl(top_left_navigation);
+        // map.addControl(top_right_navigation);    
+    };
+    //移除控件和比例尺
+    function delete_control() {
+        map.removeControl(top_left_control);
+        map.removeControl(top_left_navigation);
+        // map.removeControl(top_right_navigation); 
+    };
+
+    // 添加地图类型和缩略图
+    function add_control_map() {
+        map.addControl(mapType1); //2D图，混合图，卫星图
+        map.addControl(overView); //添加默认缩略地图控件
+        map.addControl(overViewOpen); //右下角，打开
+    };
+
+    add_control_ruler();
+    add_control_map();
+    setTimeout(function () {
+        layer.msg('', {
+            'offset': 'b'
+        });
+    }, 1000);
+
+    // 设置点
+
+    // 右键添加菜单
+    var menu = new BMap.ContextMenu();
+    var myDis = new BMapLib.DistanceTool(map); //测距功能
+    var txtMenuItem = [{
+            text: '开启测距',
+            callback: function () {
+                myDis.open(); //开启鼠标测距
+                layer.msg('开启鼠标测距离');
+            }
+        },
+        {
+            text: '关闭测距',
+            callback: function () {
+                myDis.close(); //关闭鼠标测距
+                layer.msg('关闭鼠标测距离');
+            }
+        }
+    ];
+    for (var i = 0; i < txtMenuItem.length; i++) {
+        menu.addItem(new BMap.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
+    }
+    map.addContextMenu(menu);
+
+    // 定义一个控件类一1,即function
+    function IconMove1() {
+        // 默认停靠位置和偏移量
+        this.defaultAnchor = BMAP_ANCHOR_TOP_LEFT;
+        this.defaultOffset = new BMap.Size(75, 60);
+    }
+
+    // 通过JavaScript的prototype属性继承于BMap.Control
+    IconMove1.prototype = new BMap.Control();
+
+    // 自定义控件必须实现自己的initialize方法,并且将控件的DOM元素返回
+    // 在本方法中创建个div元素作为控件的容器,并将其添加到地图容器中
+    window.point_id = 0;
+    IconMove1.prototype.initialize = function (map) {
+        // 创建一个form元素
+        var form = document.createElement("form");
+        form.id = "lng_lag";
+        form.name = "lng_lag";
+        form.action = "hehe.jsp";
+        form.method = "post";
+        // 添加form元素到地图中
+        map.getContainer().appendChild(form);
+        //创建input1
+        var input1 = document.createElement("input");
+        // 设置样式
+        input1.style.cursor = "pointer";
+        input1.style.border = "1px solid gray";
+        input1.style.backgroundColor = "white";
+        //设置id,name
+        input1.id = "lng";
+        input1.placeholder = "经度";
+        //添加input到dorm
+        form.appendChild(input1);
+        // 创建input2
+        var input2 = document.createElement("input");
+        // 设置样式
+        input2.style.cursor = "pointer";
+        input2.style.border = "1px solid gray";
+        input2.style.backgroundColor = "white";
+        //设置id,name
+        input2.id = "lag";
+        input2.placeholder = "纬度";
+        //添加input到form
+        form.appendChild(input2);
+        //创建提交input
+        var input3 = document.createElement("input");
+        input3.type = "button";
+        input3.value = "创建";
+        input3.onclick = Function("get()")
+        form.appendChild(input3);
+        //将DOM元素返回
+        return form;
+    }
+
+    // 创建控件
+    var myIconMove1 = new IconMove1();
+    // 添加到地图当中
+    map.addControl(myIconMove1);
+    //创建图标函数
+    function get() {
+        window.point_id += 1;
+        var aa = document.getElementById("lng").value;
+        var bb = document.getElementById("lag").value;
+        var aaa = parseFloat(aa);
+        var bbb = parseFloat(bb);
+
+        // 创建图标
+        var point_icon = new BMap.Point(aaa, bbb);
+        var myIcon = new BMap.Icon("../../bmap-offline/images/fox.gif", new BMap.Size(300, 157));
+        var marker2 = new BMap.Marker(point_icon, {
+            icon: myIcon
+        });
+        //图标右键删除
+        //删除函数
+        var removeMarker = function (e, ee, marker2) {
+            map.removeOverlay(marker2);
+        }
+        //创建右键菜单
+        var markerMenu = new BMap.ContextMenu();
+        markerMenu.addItem(new BMap.MenuItem('删除', removeMarker.bind(marker2)));
+        //设置文本标注
+        var opts = {
+            position: point_icon, // 指定文本标注所在的地理位置
+            offset: new BMap.Size(30, -30) //设置文本偏移量
+        }
+        // 创建标注
+        map.addOverlay(marker2); // 将标注添加到地图中
+        marker2.enableDragging();
+        marker2.addContextMenu(markerMenu);
+    }
+
+
+    // 定义一个控件类二,即function
+    function ZoomControl() {
+        // 默认停靠位置和偏移量
+        this.defaultAnchor = BMAP_ANCHOR_BOTTOM_LEFT;
+        this.defaultOffset = new BMap.Size(100, 18);
+    }
+
+    // 通过JavaScript的prototype属性继承于BMap.Control
+    ZoomControl.prototype = new BMap.Control();
+
+    // 自定义控件必须实现自己的initialize方法,并且将控件的DOM元素返回
+    // 在本方法中创建个div元素作为控件的容器,并将其添加到地图容器中
+    ZoomControl.prototype.initialize = function (map) {
+        // 创建一个DOM元素
+        var div = document.createElement("div");
+        // 添加文字说明
+        div.appendChild(document.createTextNode("回到起点"));
+        // 设置样式
+        div.style.cursor = "pointer";
+        div.style.border = "1px solid gray";
+        div.style.backgroundColor = "white";
+        // 回到起始位置
+        div.onclick = function (e) {
+            map.centerAndZoom(point, 11);
+        }
+        // 添加DOM元素到地图中
+        map.getContainer().appendChild(div);
+        // 将DOM元素返回
+        return div;
+    }
+    // 创建控件
+    var myZoomCtrl = new ZoomControl();
+    // 添加到地图当中
+    map.addControl(myZoomCtrl);
+
+    //设置弹跳动画
+    var marker = new BMap.Marker(point); // 创建标注
+    map.addOverlay(marker); // 将标注添加到地图中
+    marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+
+    //生成点
+    var MAX = 10;
+    var markers = [];
+    var pt = null;
+    var i = 0;
+    var points = [];
+    var data_infos = [];
+    var opts = {
+        width: 250, // 信息窗口宽度
+        height: 80, // 信息窗口高度
+        title: "信息窗口", // 信息窗口标题
+        enableMessage: true //设置允许信息窗发送短息
+    };
+
+    // 加载省会城市
+    var city = [{
+            "name": "北京",
+            "value": [
+                "116.3979471",
+                "39.9081726",
+                78
+            ]
+        },
+        {
+            "name": "上海",
+            "value": [
+                "121.4692688",
+                "31.2381763",
+                75
+            ]
+        },
+        {
+            "name": "天津",
+            "value": [
+                "117.2523808",
+                "39.1038561",
+                95
+            ]
+        },
+        {
+            "name": "重庆",
+            "value": [
+                "106.548425",
+                "29.5549144",
+                78
+            ]
+        },
+        {
+            "name": "河北",
+            "value": [
+                "114.4897766",
+                "38.0451279",
+                42
+            ]
+        },
+        {
+            "name": "山西",
+            "value": [
+                "112.5223053",
+                "37.8357424",
+                90
+            ]
+        },
+        {
+            "name": "辽宁",
+            "value": [
+                "123.4116821",
+                "41.7966156",
+                96
+            ]
+        },
+        {
+            "name": "吉林",
+            "value": [
+                "125.3154297",
+                "43.8925629",
+                46
+            ]
+        },
+        {
+            "name": "浙江",
+            "value": [
+                "120.1592484",
+                "30.265995",
+                32
+            ]
+        },
+        {
+            "name": "福建",
+            "value": [
+                "119.2978134",
+                "26.0785904",
+                2
+            ]
+        },
+        {
+            "name": "山东",
+            "value": [
+                "117.0056",
+                "36.6670723",
+                32
+            ]
+        },
+        {
+            "name": "河南",
+            "value": [
+                "113.6500473",
+                "34.7570343",
+                23
+            ]
+        },
+        {
+            "name": "湖北",
+            "value": [
+                "114.2919388",
+                "30.5675144",
+                76
+            ]
+        },
+        {
+            "name": "湖南",
+            "value": [
+                "112.9812698",
+                "28.2008247",
+                71
+            ]
+        },
+        {
+            "name": "广东",
+            "value": [
+                "113.2614288",
+                "23.1189117",
+                6
+            ]
+        },
+        {
+            "name": "海南",
+            "value": [
+                "110.3465118",
+                "20.0317936",
+                64
+            ]
+        },
+        {
+            "name": "四川",
+            "value": [
+                "104.0817566",
+                "30.6610565",
+                54
+            ]
+        },
+        {
+            "name": "贵州",
+            "value": [
+                "106.7113724",
+                "26.5768738",
+                1
+            ]
+        },
+        {
+            "name": "云南",
+            "value": [
+                "102.704567",
+                "25.0438442",
+                78
+            ]
+        },
+        {
+            "name": "江西",
+            "value": [
+                "115.8999176",
+                "28.6759911",
+                16
+            ]
+        },
+        {
+            "name": "陕西",
+            "value": [
+                "108.949028",
+                "34.2616844",
+                14
+            ]
+        },
+        {
+            "name": "青海",
+            "value": [
+                "101.7874527",
+                "36.6094475",
+                22
+            ]
+        },
+        {
+            "name": "甘肃",
+            "value": [
+                "103.7500534",
+                "36.0680389",
+                37
+            ]
+        },
+        {
+            "name": "广西",
+            "value": [
+                "108.3117676",
+                "22.8065434",
+                52
+            ]
+        },
+        {
+            "name": "新疆",
+            "value": [
+                "87.6061172",
+                "43.7909393",
+                11
+            ]
+        },
+        {
+            "name": "内蒙古",
+            "value": [
+                "111.6632996",
+                "40.8209419",
+                56
+            ]
+        },
+        {
+            "name": "西藏",
+            "value": [
+                "91.1320496",
+                "29.657589",
+                6
+            ]
+        },
+        {
+            "name": "宁夏",
+            "value": [
+                "106.2719421",
+                "38.4680099",
+                64
+            ]
+        },
+        {
+            "name": "台湾",
+            "value": [
+                "120.9581316",
+                "23.8516062",
+                49
+            ]
+        },
+        {
+            "name": "香港",
+            "value": [
+                "114.139452",
+                "22.391577",
+                49
+            ]
+        },
+        {
+            "name": "澳门",
+            "value": [
+                "113.5678411",
+                "22.167654",
+                36
+            ]
+        },
+        {
+            "name": "安徽",
+            "value": [
+                "117.2757034",
+                "31.8632545",
+                78
+            ]
+        },
+        {
+            "name": "江苏",
+            "value": [
+                "118.7727814",
+                "32.0476151",
+                98
+            ]
+        }
+    ];
+
+    var json = city;
+    
+    for (var i = 0; i < json.length; i++) {
+        var lng = parseFloat(json[i].value[0]);
+        var lag = parseFloat(json[i].value[1]);
+        var content = json[i].name;
+
+        var pt = new BMap.Point(lng, lag);
+        map.addOverlay();
+        data_info = [lng, lag, name];
+        points.push(pt);
+        data_infos.push(data_info);
+        var marker = new BMap.Marker(pt);
+        //显示标记点
+        map.addOverlay(marker);
+
+        //创建右键菜单
+        var s; //经度
+        var w; //纬度
+        map.addEventListener("rightclick", function (e) {
+            if (e.overlay) {
+                s = e.point.lng; //经度
+                w = e.point.lat; //维度
+                map.panTo(new BMap.Point(s, w)); //两秒后移动到广州
+                //右键单击map出现右键菜单事件//判断右键单击的是否是marker
+            } else {
+
+            }
+        });
+        // var markerMenu = new BMap.ContextMenu();
+        // markerMenu.addItem(new BMap.MenuItem('移动', moveMarker.bind(marker)));
+        // marker.addContextMenu(markerMenu);
+        //创建左键菜单
+        addClickHandler(content, marker);
+
+        function addClickHandler(content, marker) {
+            marker.addEventListener("click", function (e) {
+                openInfo(content, e)
+            });
+        }
+
+        function openInfo(content, e) {
+            var p = e.target;
+            var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+            var infoWindow = new BMap.InfoWindow(content, opts); // 创建信息窗口对象 
+            map.openInfoWindow(infoWindow, point); //开启信息窗口
+        }
+        // var point_move = map.centerAndZoom(pt, 11);
+        markers.push(new BMap.Marker(pt));
+    }
+    // var markerClusterer = new BMapLib.MarkerClusterer(map, {
+    //     markers: markers
+    // });
+
+    // window.onload = function () {
+    //     var url = "./address.json" /*json文件url，本地的就写本地的位置，如果是服务器的就写服务器的路径*/
+    //     var request = new XMLHttpRequest();
+    //     request.open("get", url); /*设置请求方法与路径*/
+    //     request.send(null); /*不发送数据到服务器*/
+    //     request.onload = function () {
+    //         /*XHR对象获取到返回信息后执行*/
+    //         if (request.status == 200) {
+    //             /*返回状态为200，即为数据获取成功*/
+
+    //             var json = JSON.parse(request.responseText);
+    //             for (var i = 0; i < json.length; i++) {
+    //                 var lng = parseFloat(json[i].value[0]);
+    //                 var lag = parseFloat(json[i].value[1]);
+    //                 var content = json[i].name;
+
+    //                 var pt = new BMap.Point(lng, lag);
+    //                 map.addOverlay();
+    //                 data_info = [lng, lag, name];
+    //                 points.push(pt);
+    //                 data_infos.push(data_info);
+    //                 var marker = new BMap.Marker(pt);
+    //                 //显示标记点
+    //                 map.addOverlay(marker);
+
+    //                 //创建右键菜单
+    //                 var s; //经度
+    //                 var w; //纬度
+    //                 map.addEventListener("rightclick", function (e) {
+    //                     if (e.overlay) {
+    //                         s = e.point.lng; //经度
+    //                         w = e.point.lat; //维度
+    //                         map.panTo(new BMap.Point(s, w)); //两秒后移动到广州
+    //                         //右键单击map出现右键菜单事件//判断右键单击的是否是marker
+    //                     } else {
+
+    //                     }
+    //                 });
+    //                 // var markerMenu = new BMap.ContextMenu();
+    //                 // markerMenu.addItem(new BMap.MenuItem('移动', moveMarker.bind(marker)));
+    //                 // marker.addContextMenu(markerMenu);
+    //                 //创建左键菜单
+    //                 addClickHandler(content, marker);
+
+    //                 function addClickHandler(content, marker) {
+    //                     marker.addEventListener("click", function (e) {
+    //                         openInfo(content, e)
+    //                     });
+    //                 }
+
+    //                 function openInfo(content, e) {
+    //                     var p = e.target;
+    //                     var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+    //                     var infoWindow = new BMap.InfoWindow(content, opts); // 创建信息窗口对象 
+    //                     map.openInfoWindow(infoWindow, point); //开启信息窗口
+    //                 }
+    //                 // var point_move = map.centerAndZoom(pt, 11);
+    //                 markers.push(new BMap.Marker(pt));
+    //             }
+    //             // var markerClusterer = new BMapLib.MarkerClusterer(map, {
+    //             //     markers: markers
+    //             // });
+
+
+    //         }
+    //     }
+    // }
+</script>
+<script type="text/javascript" src="../demo.js"></script>
