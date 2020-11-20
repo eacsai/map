@@ -1,59 +1,38 @@
 <template>
   <el-table
-    :data="tableData"
-    height="250"
-    border
-    style="width: 100%">
+    :data="table_data"
+    style="width: 100%"
+    height="100%">
     <el-table-column
-      prop="date"
-      label="日期"
+      prop="id"
+      label="序号"
       width="180">
     </el-table-column>
     <el-table-column
       prop="name"
-      label="姓名"
+      label="设备名称"
       width="180">
     </el-table-column>
     <el-table-column
-      prop="address"
-      label="地址">
+      prop="log"
+      label="经度">
+    </el-table-column>
+    <el-table-column
+      prop="lng"
+      label="纬度">
+    </el-table-column>
+    <el-table-column
+      prop="money"
+      label="造价">
     </el-table-column>
   </el-table>
 </template>
 
 <script>
   export default {
+    props: ['table_data'],
     data() {
       return {
-        tableData: [{
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-08',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-06',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-07',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }]
       }
     }
   }
