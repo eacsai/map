@@ -3,7 +3,14 @@
 import { app, protocol, BrowserWindow, Menu } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+
+const ipcMain = require('electron').ipcMain
 const isDevelopment = process.env.NODE_ENV !== 'production'
+app.allowRendererProcessReuse = true
+
+
+
+
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -68,6 +75,21 @@ async function createMenu() {
                         miniWindow = null
                       })
                     }
+                },
+                {
+                  label: 'sum',
+                  click: ()=>{
+                    fetch('./wasm/test.wasm').then(response => 
+                      response.arrayBuffer()
+                      ).then(bytes =>
+                        WebAssembly.compile(bytes)
+                        .then(mod =>{
+                          const instance = new WebAssembly.Instance(mod)
+                          const a = instance.exports
+                          alert(a)
+                        })
+                        )
+                  }
                 }
             ]
         }

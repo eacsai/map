@@ -3,8 +3,12 @@
     <!-- 顶部横条 -->
     <el-row>
       <el-col :span="24" :style="'height:' + fullHeight * 0.05 + 'px;'"
-        ><div class="grid-content bg-purple-dark" style="height: 100%"></div
-      ></el-col>
+        ><div class="grid-content bg-purple-dark" style="height: 100%">
+          <point-create @form_data="form_rec"
+            style="position: absolute; top: 4px; left: 5px"
+          ></point-create>
+        </div>
+      </el-col>
     </el-row>
     <!-- 中部地图和边栏 -->
     <el-row>
@@ -25,10 +29,13 @@
     <el-row :style="'height:' + fullHeight * 0.05 + 'px;'">
       <el-tag :span="24" type="" effect="plain">设备参数显示窗口</el-tag>
 
-    <el-col :span="24" :style="'height:' + fullHeight * 0.2 + 'px;'">
-      <tab-bar :table_data="dev_info"></tab-bar>
-    </el-col>
-    <!-- <point-create @form_data="form_rec"></point-create> -->
+      <el-col :span="24" :style="'height:' + fullHeight * 0.2 + 'px;'">
+        <tab-bar :table_data="dev_info"></tab-bar>
+      </el-col>
+
+      <button @click="sum()" style="display: inline-block">sum</button>
+
+      <!-- <point-create @form_data="form_rec"></point-create> -->
     </el-row>
   </div>
 </template>
@@ -37,7 +44,7 @@
 import TabBar from "../components/tabbar/TabBar";
 import MapContent from "../components/content/MapContent";
 import SideBar from "../components/tabbar/SideBar";
-import PointCreate from "../components/form/PointCreate.vue";
+import PointCreate from "../views/PointCreate.vue";
 
 export default {
   name: "MapView",
@@ -71,7 +78,6 @@ export default {
   },
   methods: {
     get_bodyHeight() {
-      //动态获取浏览器高度
       const that = this;
       window.onresize = () => {
         return (() => {
@@ -80,16 +86,26 @@ export default {
         })();
       };
     },
+    sum() {
+      const that = this;
+      let list = [];
+      let len = this.dev_info.length;
+      let resdata = JSON.parse(JSON.stringify(this.dev_info));
+      // console.log(resdata)
+      for (var i = 0; i < len; i++) {
+        let res = resdata[i]
+
+        list.push(resdata[i])
+        console.log(list)
+      }
+      console.log(resdata[0])
+
+
+      this.add(list);
+    },
     form_rec(item) {
-      console.log(this.dev_info);
-      this.dev_info.push({
-        id: this.dev_info.length,
-        name: item.name,
-        log: item.log,
-        lng: item.lng,
-        money: item.money,
-      });
-      console.log(this.dev_info.id);
+      this.dev_info.push(item.money);
+      console.log('dev_info',JSON.parse(JSON.stringify(this.dev_info)));
     },
   },
 };

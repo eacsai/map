@@ -34,7 +34,6 @@
       <router-link to="/miniWindow" target='_blank'>跳转</router-link>
     </el-row> -->
   <router-link to="/" ></router-link>
-  <router-link to="/miniWindow" ></router-link>
   <router-view></router-view>
 
 
@@ -45,7 +44,7 @@
 import TabBar from "./components/tabbar/TabBar";
 import MapContent from "./components/content/MapContent";
 import SideBar from "./components/tabbar/SideBar";
-import PointCreate from "./components/form/PointCreate.vue";
+import PointCreate from "./views/PointCreate.vue";
 
 export default {
   name: "App",

@@ -1,6 +1,6 @@
 <template>
   <el-table
-    :data="table_data"
+    :data='list'
     style="width: 100%; margin-top:5%"
     height="87%">
     <el-table-column
@@ -34,9 +34,14 @@
 
 <script>
   export default {
-    props: ['table_data'],
+    // props: ['table_data'],
     data() {
       return {
+      }
+      },
+    computed:{
+      list: function(){
+        return this.$store.state.devInfo
       }
     }
   }
